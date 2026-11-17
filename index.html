@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FU Money · 组合管理 Quiz</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f6f2ec;
+      --surface: #fffdfa;
+      --ink: #201b17;
+      --muted: #63584e;
+      --line: #e7ded5;
+      --orange: #a83c14;
+      --orange-dark: #8e2e0c;
+      --orange-tint: #fff0e5;
+      --green: #216047;
+      --green-tint: #eaf4ee;
+      font-family: Inter, "Segoe UI", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      font-synthesis: none;
+      line-height: 1.6;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    button:focus-visible, summary:focus-visible, .choice-input:focus-visible + .choice-body {
+      outline: 3px solid var(--orange);
+      outline-offset: 3px;
+    }
+
+    .shell {
+      width: min(100% - 2.5rem, 64rem);
+      margin-inline: auto;
+    }
+
+    .banner {
+      padding-block: 2.25rem 3.75rem;
+      background: #26211d;
+      border-bottom: 4px solid #ec783f;
+      color: #fff8f2;
+    }
+
+    .course {
+      color: #ffb28a;
+      font-size: .83rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+    }
+
+    h1 {
+      margin-top: .35rem;
+      font-size: clamp(1.9rem, 4.4vw, 2.85rem);
+      line-height: 1.2;
+    }
+
+    .intro {
+      margin-top: .7rem;
+      color: #e1d7cc;
+    }
+
+    main {
+      position: relative;
+      margin-top: -1.65rem;
+      padding-bottom: 3rem;
+    }
+
+    .quiz-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 15.5rem;
+      gap: 1.1rem;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 1.15rem;
+      box-shadow: 0 10px 26px rgba(61, 42, 25, .055);
+    }
+
+    .question-panel {
+      padding: clamp(1.1rem, 3.5vw, 2rem);
+      scroll-margin-top: 1rem;
+    }
+
+    .progress-labels {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: .3rem .8rem;
+      color: var(--muted);
+      font-size: .89rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #questionNumber { color: var(--orange); font-weight: 700; }
+
+    progress {
+      display: block;
+      appearance: none;
+      width: 100%;
+      height: .375rem;
+      margin-block: .55rem 1.45rem;
+      border: 0;
+      border-radius: 1rem;
+      overflow: hidden;
+      background: #eee5db;
+      accent-color: var(--orange);
+    }
+
+    progress::-webkit-progress-bar { background: #eee5db; }
+    progress::-webkit-progress-value { background: var(--orange); border-radius: 1rem; }
+    progress::-moz-progress-bar { background: var(--orange); border-radius: 1rem; }
+
+    #questionTitle {
+      font-size: clamp(1.24rem, 2.8vw, 1.55rem);
+      line-height: 1.45;
+    }
+
+    .question-context {
+      margin-top: .55rem;
+      color: var(--muted);
+      white-space: pre-line;
+    }
+
+    .choices {
+      display: grid;
+      gap: .55rem;
+      margin-block: 1.15rem 1.35rem;
+    }
+
+    .choice {
+      position: relative;
+      display: block;
+      cursor: pointer;
+    }
+
+    .choice-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: 0;
+      opacity: 0;
+    }
+
+    .choice-body {
+      display: grid;
+      grid-template-columns: 2.05rem minmax(0, 1fr) 1.05rem;
+      gap: .7rem;
+      align-items: center;
+      min-height: 3.5rem;
+      padding: .65rem .8rem;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: .8rem;
+    }
+
+    .choice:hover .choice-body { border-color: #be9a87; }
+
+    .choice-letter {
+      display: grid;
+      width: 2.05rem;
+      height: 2.05rem;
+      place-items: center;
+      background: #f5eee6;
+      border-radius: .45rem;
+      font-weight: 700;
+    }
+
+    .choice-indicator {
+      display: grid;
+      width: 1.05rem;
+      height: 1.05rem;
+      place-items: center;
+      border: 1px solid #9b8f85;
+      border-radius: 50%;
+    }
+
+    .choice-input:checked + .choice-body {
+      background: var(--orange-tint);
+      border-color: var(--orange);
+    }
+
+    .choice-input:checked + .choice-body .choice-letter { background: var(--orange); color: #fff; }
+    .choice-input:checked + .choice-body .choice-indicator { border-color: var(--orange); }
+    .choice-input:checked + .choice-body .choice-indicator::after {
+      width: .48rem;
+      height: .48rem;
+      border-radius: 50%;
+      background: var(--orange);
+      content: "";
+    }
+
+    .question-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: .65rem;
+    }
+
+    .button {
+      min-height: 2.8rem;
+      padding: .45rem 1.1rem;
+      border: 1px solid var(--line);
+      border-radius: .65rem;
+      background: #fff;
+      font-weight: 700;
+    }
+
+    .button:not(:disabled):hover { border-color: #ab8876; background: #faf5ee; }
+    .button:disabled { color: #81756a; background: #f5f1ec; cursor: default; }
+    .button.primary { border-color: var(--orange); background: var(--orange); color: #fff; }
+    .button.primary:hover { border-color: var(--orange-dark); background: var(--orange-dark); }
+
+    .notice {
+      margin-bottom: .9rem;
+      padding: .65rem .8rem;
+      border-radius: .55rem;
+      background: var(--orange-tint);
+      color: var(--orange-dark);
+      font-size: .9rem;
+    }
+
+    .answer-sheet { padding: 1.15rem; }
+    .answer-sheet h2 { font-size: 1.04rem; }
+    .answer-sheet p { margin-top: .65rem; color: var(--muted); font-size: .875rem; }
+
+    .question-map {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: .35rem;
+      margin-top: .8rem;
+    }
+
+    .question-map button {
+      min-height: 2.55rem;
+      border: 1px solid var(--line);
+      border-radius: .52rem;
+      background: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .question-map button:hover { border-color: var(--orange); }
+    .question-map button[data-answered="true"] { background: var(--orange-tint); color: var(--orange-dark); }
+    .question-map button[aria-current="step"] { border: 2px solid var(--orange); font-weight: 700; }
+
+    .results { max-width: 49rem; scroll-margin-top: 1rem; }
+
+    .score-panel {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: .85rem;
+      padding: clamp(1.1rem, 3.5vw, 2rem);
+    }
+
+    #scoreTitle {
+      color: var(--orange-dark);
+      font-size: clamp(1.65rem, 4vw, 2.3rem);
+    }
+
+    .review-heading { margin-block: 1.45rem .65rem; font-size: 1.12rem; }
+    .review-list { display: grid; gap: .6rem; }
+    .review { box-shadow: none; border-radius: .8rem; }
+
+    .review summary {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      min-height: 3.1rem;
+      padding: .65rem .9rem;
+      cursor: pointer;
+      font-weight: 700;
+      list-style: none;
+    }
+
+    .review summary::-webkit-details-marker { display: none; }
+    .review summary::after {
+      flex: 0 0 .46rem;
+      height: .46rem;
+      border-right: 2px solid var(--muted);
+      border-bottom: 2px solid var(--muted);
+      transform: translateY(-2px) rotate(45deg);
+      content: "";
+    }
+
+    .review[open] summary { border-bottom: 1px solid var(--line); }
+    .review[open] summary::after { transform: translateY(2px) rotate(225deg); }
+    .result-tag {
+      margin-left: auto;
+      padding: .1rem .55rem;
+      border-radius: .35rem;
+      color: var(--orange-dark);
+      background: var(--orange-tint);
+      font-size: .8rem;
+      white-space: nowrap;
+    }
+
+    .result-tag.correct { color: var(--green); background: var(--green-tint); }
+    .review-body { display: grid; gap: .55rem; padding: .85rem .9rem 1rem; }
+    .review-question { font-weight: 700; }
+    .review-answer { color: var(--orange-dark); }
+    .review-context { color: var(--muted); white-space: pre-line; }
+
+    @media (max-width: 46rem) {
+      .quiz-layout { grid-template-columns: minmax(0, 1fr); gap: .85rem; }
+      .banner { padding-block: 1.75rem 3.3rem; }
+      .question-map button { min-height: 2.8rem; }
+    }
+
+    @media (max-width: 29rem) {
+      .shell { width: calc(100% - 1.4rem); }
+      .question-panel { padding: 1rem; }
+      .choice-body { gap: .55rem; padding-inline: .6rem; }
+      .answer-sheet { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="banner">
+    <div class="shell">
+      <p class="course">FU MONEY · CHAPTER 5</p>
+      <h1>组合管理 Quiz</h1>
+      <p class="intro">FTP 的 P · 10 道单选题。交卷后查看得分和解析。</p>
+    </div>
+  </header>
+
+  <main class="shell">
+    <noscript><p class="question-panel panel">请用启用了 JavaScript 的浏览器打开这个文件。</p></noscript>
+
+    <div id="quiz" class="quiz-layout" hidden>
+      <section id="questionPanel" class="question-panel panel" aria-labelledby="questionTitle">
+        <div class="progress-labels">
+          <span id="questionNumber"></span>
+          <span id="answerCount" role="status"></span>
+        </div>
+        <progress id="progress" aria-label="已作答题数"></progress>
+
+        <h2 id="questionTitle" tabindex="-1"></h2>
+        <p id="questionContext" class="question-context" hidden></p>
+        <div id="choices" class="choices" role="radiogroup" aria-labelledby="questionTitle" aria-describedby="questionContext"></div>
+        <p id="notice" class="notice" role="alert" hidden></p>
+
+        <div class="question-actions">
+          <button type="button" id="previous" class="button">上一题</button>
+          <button type="button" id="next" class="button primary">下一题</button>
+        </div>
+      </section>
+
+      <nav class="answer-sheet panel" aria-labelledby="sheetTitle">
+        <h2 id="sheetTitle">答题卡</h2>
+        <div id="questionMap" class="question-map"></div>
+        <p>点题号跳转，交卷前可以改答案。</p>
+      </nav>
+    </div>
+
+    <section id="results" class="results" aria-labelledby="scoreTitle" hidden>
+      <div class="score-panel panel">
+        <h2 id="scoreTitle" tabindex="-1"></h2>
+        <button type="button" id="restart" class="button primary">再做一次</button>
+      </div>
+      <h3 class="review-heading">逐题解析</h3>
+      <div id="reviewList" class="review-list"></div>
+    </section>
+  </main>
+
+  <script>
+    const questions = [
+      {
+        "topic": "P 要决定什么",
+        "prompt": "你已经选好公司，也等到了计划中的买入价。按照 FTP，P 还要帮你决定什么？",
+        "options": [
+          "这家公司的护城河值几分",
+          "这只股票最多占组合多少，每批投入多少",
+          "公司的每股内在价值是多少",
+          "股价到了哪个支撑区"
+        ],
+        "answer": 1,
+        "explanation": "P 是 Portfolio Management。先定这只股票占整个组合的上限，再决定每一批投入多少。"
+      },
+      {
+        "topic": "可用于买股票和 ETF 的资金",
+        "prompt": "你手上有 RM120,000，先留 RM20,000 当生活备用金。剩下的资金里，你计划留 10% 作为组合现金、15% 买黄金。最后有多少钱可以买股票或 ETF？",
+        "options": [
+          "RM100,000",
+          "RM90,000",
+          "RM85,000",
+          "RM75,000"
+        ],
+        "answer": 3,
+        "explanation": "扣掉生活备用金后，投资组合有 RM100,000。再留 RM10,000 现金和 RM15,000 黄金，剩下 RM75,000 可以买股票或 ETF。"
+      },
+      {
+        "topic": "分批买入的用意",
+        "prompt": "你看好一只股票，股价也到了第一个计划买入价。为什么先买一批，留一部分资金给第二批？",
+        "options": [
+          "分两批买，就一定有一批能买到最低价",
+          "只要把资金分成两批，平均成本就会下降",
+          "第一批未必买到最好的价钱。如果股价跌到下一批的计划买入价，就可以用更低的价格买入，拉低整体平均成本",
+          "把同一只股票拆成两笔买，就能分散公司的经营风险"
+        ],
+        "answer": 2,
+        "explanation": "平均成本取决于两批的成交价和股数。第二批实际成交价低于第一批时，持仓的平均买入成本会下降。"
+      },
+      {
+        "topic": "业务重叠与合计仓位上限",
+        "prompt": "NVIDIA 已经占整个投资组合的 8%。你想用组合里的现金买入 AMD。两家的 GPU 和 AI 芯片业务有明显重叠。假设组合总额不变，按课上的仓位规则，买入后 AMD 最多能占整个组合多少？",
+        "options": [
+          "7%",
+          "10%",
+          "7.5%",
+          "15%"
+        ],
+        "answer": 0,
+        "explanation": "课上把业务高度重叠的两只股票合起来算，主动加仓后的总上限是 15%。NVIDIA 已占 8%，AMD 最多还有 15% − 8% = 7%。"
+      },
+      {
+        "topic": "持仓数量和复查能力",
+        "prompt": "你的观察名单有 20 家公司，但你每季只有时间认真复查 6 家。按照 Portfolio Management 的逻辑，怎样选持仓最合适？",
+        "options": [
+          "20 家都买一点，每季挑涨跌最多的 6 家复查",
+          "选 6 家自己研究过、业务风险不过度重叠的公司，每季复查持有理由",
+          "从同一个行业选 6 家，方便一起跟踪行业消息",
+          "把资金集中在最有信心的两家公司，把研究做得更深"
+        ],
+        "answer": 1,
+        "explanation": "持股数量要配合你持续研究和复查的能力。选公司时，也要看它们会不会受到同一类风险影响。"
+      },
+      {
+        "topic": "个股搭配行业 ETF",
+        "prompt": "你已经持有一些个股。以下哪种情况，适合在组合里搭配一只半导体 ETF？",
+        "options": [
+          "你只看好 NVIDIA，想把新增资金集中在它身上",
+          "你想把半导体仓位分散到医疗、消费等其他行业",
+          "你想预留一笔现金，等下一次股市下跌才使用",
+          "你看好整个半导体行业，想投资多家公司，减少对 NVIDIA 一家公司的依赖"
+        ],
+        "answer": 3,
+        "explanation": "持有多家公司的半导体 ETF 可以分散单一公司的风险。这部分仓位仍会受到半导体行业整体涨跌的影响。"
+      },
+      {
+        "topic": "用卖金所得补股票",
+        "prompt": "股市大跌，你持有的黄金账面赚了 RM2,000。预留现金已用完，美联储已启动 QE（量化宽松），标普 500 也跌到了课上设定的第一档卖金位置。接下来，怎样把黄金变成低位买股的资金？",
+        "options": [
+          "继续持有全部黄金，只记录 RM2,000 的账面盈利",
+          "等股市回到原来的高点，再卖黄金买股票",
+          "按第一档计划卖出一批黄金，用卖金所得在低位买入符合计划的股票",
+          "一次卖掉全部黄金，把资金全部投入股票"
+        ],
+        "answer": 2,
+        "explanation": "卖出这一批黄金后，用实际到账的卖金款执行这一档的买入计划。"
+      },
+      {
+        "topic": "危机初期的金价反应",
+        "prompt": "以 2020 年 3 月疫情引发的市场抛售为例，从投资者急着筹现金，到美联储扩大 QE，黄金经历了什么？",
+        "options": [
+          "有投资者卖黄金筹现金来应付追加保证金要求（Margin Call），金价一度下跌。美联储扩大 QE 后，金价回升",
+          "避险需求让黄金在股市急跌期间一路上涨",
+          "美联储先卖黄金回笼现金，再通过 QE 买回黄金，推动金价回升",
+          "投资者卖黄金补缴保证金后，金价一直跌到股市收复全部跌幅才回升"
+        ],
+        "answer": 0,
+        "explanation": "2020 年 3 月，部分投资者出售容易变现的资产来补保证金，黄金也一度受压。美联储扩大购债后，金价后来回升。"
+      },
+      {
+        "topic": "股市下跌时，先用现金还是黄金",
+        "prompt": "标普 500 第一次跌到课上设定的买入档位。你的组合里还有预留现金和黄金。按课上的危机应对计划，这时应该先用哪一笔资金买股票？",
+        "options": [
+          "先卖一批黄金买股，把现金留到股市跌得更深时再用",
+          "先用第一批预留现金买股，黄金留到后续卖金条件满足时再用",
+          "同时动用一部分现金和一部分黄金，两边各出一半",
+          "等美联储启动 QE 后，再动用第一批预留现金"
+        ],
+        "answer": 1,
+        "explanation": "预留现金按跌幅分批投入。现金用完后，还要等股市达到卖金档位、美联储已启动 QE、黄金实际上涨，才按计划卖金补股。"
+      },
+      {
+        "topic": "触发失效条件后的处理",
+        "prompt": "股价到了你原本计划买第二批的价位，但新财报触发了你买入前写好的失效条件。这时怎么做最符合原计划？",
+        "options": [
+          "照原定金额买第二批，等下一季财报再看",
+          "把第二批减半，先买一点",
+          "把第二、第三批一起买，拉低平均成本",
+          "暂停买第二批，重新评估原来的持有理由"
+        ],
+        "answer": 3,
+        "explanation": "第二批的买入计划建立在原来的持有理由上。新财报触发失效条件时，先复查哪些假设变了，再决定下一步。"
+      }
+    ];
+
+    const letters = ["A", "B", "C", "D"];
+    const answers = questions.map(() => null);
+    let currentQuestion = 0;
+
+    const byId = (id) => document.getElementById(id);
+    const quiz = byId("quiz");
+    const panel = byId("questionPanel");
+    const title = byId("questionTitle");
+    const context = byId("questionContext");
+    const choices = byId("choices");
+    const notice = byId("notice");
+    const progress = byId("progress");
+    const previous = byId("previous");
+    const next = byId("next");
+    const results = byId("results");
+    const scoreTitle = byId("scoreTitle");
+    const reviewList = byId("reviewList");
+
+    function element(tag, text = "", className = "") {
+      const node = document.createElement(tag);
+      node.textContent = text;
+      node.className = className;
+      return node;
+    }
+
+    const jumpButtons = questions.map((_, index) => {
+      const button = element("button", index + 1);
+      button.type = "button";
+      button.addEventListener("click", () => showQuestion(index));
+      return button;
+    });
+    byId("questionMap").append(...jumpButtons);
+    progress.max = questions.length;
+
+    function syncProgress() {
+      const answeredCount = answers.filter((answer) => answer !== null).length;
+      const countLabel = "已答 " + answeredCount + " 题";
+      if (byId("answerCount").textContent !== countLabel) {
+        byId("answerCount").textContent = countLabel;
+      }
+      progress.value = answeredCount;
+      jumpButtons.forEach((button, index) => {
+        const answered = answers[index] !== null;
+        button.dataset.answered = String(answered);
+        button.setAttribute("aria-label", "第 " + (index + 1) + " 题，" + (answered ? "已作答" : "未作答"));
+        if (index === currentQuestion) {
+          button.setAttribute("aria-current", "step");
+        } else {
+          button.removeAttribute("aria-current");
+        }
+      });
+    }
+
+    function makeChoice(option, index) {
+      const label = element("label", "", "choice");
+      const input = element("input", "", "choice-input");
+      input.type = "radio";
+      input.name = "answer";
+      input.value = index;
+      input.checked = answers[currentQuestion] === index;
+
+      const body = element("span", "", "choice-body");
+      const indicator = element("span", "", "choice-indicator");
+      indicator.setAttribute("aria-hidden", "true");
+      body.append(element("span", letters[index], "choice-letter"), element("span", option), indicator);
+      label.append(input, body);
+      return label;
+    }
+
+    function showQuestion(index, { focus = true, message = "" } = {}) {
+      currentQuestion = index;
+      const question = questions[index];
+      byId("questionNumber").textContent = "第 " + (index + 1) + " / " + questions.length + " 题";
+      title.textContent = question.prompt;
+      context.textContent = question.context ?? "";
+      context.hidden = !question.context;
+      choices.replaceChildren(...question.options.map(makeChoice));
+      notice.textContent = message;
+      notice.hidden = !message;
+      previous.disabled = index === 0;
+      next.textContent = index === questions.length - 1 ? "交卷" : "下一题";
+      syncProgress();
+      if (focus) {
+        title.focus({ preventScroll: true });
+        panel.scrollIntoView({ block: "start" });
+      }
+    }
+
+    choices.addEventListener("change", (event) => {
+      answers[currentQuestion] = Number(event.target.value);
+      notice.hidden = true;
+      syncProgress();
+    });
+
+    function makeReview(question, index) {
+      const chosen = answers[index];
+      const isCorrect = chosen === question.answer;
+      const details = element("details", "", "review panel");
+      const summary = element("summary");
+      summary.append(
+        element("span", (index + 1) + ". " + question.topic),
+        element("span", isCorrect ? "答对" : "答错", isCorrect ? "result-tag correct" : "result-tag")
+      );
+      const body = element("div", "", "review-body");
+      body.append(element("p", question.prompt, "review-question"));
+      if (question.context) {
+        body.append(element("p", question.context, "review-context"));
+      }
+      if (!isCorrect) {
+        body.append(element("p", "你的答案 " + letters[chosen] + " · " + question.options[chosen]));
+      }
+      body.append(
+        element("p", "正确答案 " + letters[question.answer] + " · " + question.options[question.answer], "review-answer"),
+        element("p", question.explanation)
+      );
+      details.append(summary, body);
+      details.open = !isCorrect;
+      return details;
+    }
+
+    function submitQuiz() {
+      const missing = answers.indexOf(null);
+      if (missing !== -1) {
+        showQuestion(missing, { message: "这一题还没选。请完成全部 10 题后交卷。" });
+        return;
+      }
+      const score = questions.filter((question, index) => answers[index] === question.answer).length;
+      scoreTitle.textContent = "答对 " + score + " / " + questions.length + " 题";
+      reviewList.replaceChildren(...questions.map(makeReview));
+      quiz.hidden = true;
+      results.hidden = false;
+      scoreTitle.focus({ preventScroll: true });
+      results.scrollIntoView({ block: "start" });
+    }
+
+    previous.addEventListener("click", () => showQuestion(currentQuestion - 1));
+    next.addEventListener("click", () => {
+      if (currentQuestion === questions.length - 1) {
+        submitQuiz();
+      } else {
+        showQuestion(currentQuestion + 1);
+      }
+    });
+
+    byId("restart").addEventListener("click", () => {
+      answers.fill(null);
+      reviewList.replaceChildren();
+      results.hidden = true;
+      quiz.hidden = false;
+      showQuestion(0);
+    });
+
+    quiz.hidden = false;
+    showQuestion(0, { focus: false });
+  </script>
+</body>
+</html>
